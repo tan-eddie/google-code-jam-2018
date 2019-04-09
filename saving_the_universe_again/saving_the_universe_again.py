@@ -3,44 +3,40 @@
 # If impossible, return -1
 def min_hacks(d, p):
 
-  p_list = list(p)
-
-  swap_possible = True
-  current_damage = 0
-  num_hacks = 0
-
-  while swap_possible:
-    # calculate current damage
-    shoot_damage = 1
-    current_damage = 0
-    for c in p_list:
-      if c == "S":
-        current_damage += shoot_damage
-      elif c == "C":
-        shoot_damage = shoot_damage * 2
-
-    if current_damage > d:
-      # find highest "CS" pair and swap
-      swap_possible = False
-      for i in reversed(range(len(p_list)-1)):
-        if p_list[i:i+2] == ["C", "S"]:
-          # perform swap
-          temp = p_list[i]
-          p_list[i] = p[i+1]
-          p_list[i+1] = temp
-          # update number of hacks
-          num_hacks += 1
-          swap_possible = True
-          break
-      # if we didn't find a "CS" pair, then swap_possible remains False
-      # and we break out of the while loop
+  # list containing number of shoot commands per
+  # damage level. Each element is represents a
+  # damage level; 1, 2, 4, 8, ... and so on.
+  shots = [0]
+  damage = 0
+  for c in p:
+    if c == "S":
+      shots[-1] += 1
+      # we can also calculate damage here.
+      damage += 2 ** (len(shots) - 1)
     else:
-      break
+      shots.append(0)
 
-  if current_damage > d:
-    return -1
-  else:
-    return num_hacks
+  # each hack represents moving 1 shot down 1 element
+  # in the shots list. So keep doing this until
+  # damage is <= d.
+  hacks = 0
+  while damage > d:
+    # move 1 shot from highest element possible down 1 element.
+    hacked = False
+    for i in range(len(shots)-1, 0, -1):
+      if shots[i] > 0:
+        shots[i] -= 1
+        shots[i-1] += 1
+        damage -= 2 ** (i - 1) # damage = damage - 2**i + 2**(i-1)
+        hacks += 1
+        hacked = True
+        break
+
+    if not hacked:
+      # impossible to get damage <= d!
+      return -1
+
+  return hacks
 
 num_cases = int(input())
 for i in range(1, num_cases+1):
